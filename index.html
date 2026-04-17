@@ -1,0 +1,289 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Phaser D1 Prototype</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: #0f0f0f;
+      height: 100%;
+      font-family: Arial, sans-serif;
+    }
+
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #game-container {
+      width: 960px;
+      height: 540px;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+    }
+  </style>
+</head>
+<body>
+  <div id="game-container"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/phaser@3/dist/phaser.js"></script>
+  <script>
+    const WIDTH = 960;
+    const HEIGHT = 540;
+
+    class StudioIntroScene extends Phaser.Scene {
+  constructor() {
+    super('StudioIntroScene');
+  }
+
+  preload() {
+    this.load.image('guy', 'assets/man.png');
+    this.load.image('logo', 'assets/Logo.png');
+    this.load.image('title', 'assets/title.png');
+    this.load.image('cityBg', 'assets/Background.png');
+
+    this.load.audio('footsteps', 'assets/walk.m4a');
+    this.load.audio('punch', 'assets/Punch.m4a');
+    this.load.audio('voiceLine', 'assets/what-looking-at.m4a');
+  }
+
+  create() {
+    this.cameras.main.setBackgroundColor('#111111');
+    this.cameras.main.fadeIn(500, 0, 0, 0);
+
+    this.add.rectangle(WIDTH / 2, HEIGHT / 2, WIDTH, HEIGHT, 0x111111);
+
+    const guy = this.add.image(-120, HEIGHT - 120, 'guy').setScale(0.28);
+
+    const speechText = this.add
+      .text(170, 95, "What you lookin' at?\nBoi!.", {
+        fontFamily: 'Arial',
+        fontSize: '34px',
+        color: '#ffffff',
+        align: 'center',
+        stroke: '#000000',
+        strokeThickness: 5,
+        shadow: {
+          offsetX: 2,
+          offsetY: 2,
+          color: '#000000',
+          blur: 6,
+          fill: true
+        }
+      })
+      .setAlpha(0);
+
+    const shockwave = this.add.circle(360, HEIGHT - 155, 18, 0xffffff).setAlpha(0);
+    const flash = this.add.rectangle(WIDTH / 2, HEIGHT / 2, WIDTH, HEIGHT, 0xffffff).setAlpha(0);
+    const logo = this.add.image(720, HEIGHT / 2, 'logo').setScale(0.2).setAlpha(0);
+
+    const footsteps = this.cache.audio.exists('footsteps')
+      ? this.sound.add('footsteps', { volume: 0.65 })
+      : null;
+
+    const punch = this.sound.add('punch', { volume: 0.9 });
+    const voiceLine = this.cache.audio.exists('voiceLine')
+        ? this.sound.add('voiceLine', { volume: 1 })
+        : null;
+
+    if (footsteps) footsteps.play();
+
+    this.tweens.add({
+      targets: guy,
+      x: 260,
+      duration: 1800,
+      ease: 'Sine.easeInOut'
+    });
+
+    this.tweens.add({
+      targets: guy,
+      y: HEIGHT - 128,
+      angle: -7,
+      duration: 120,
+      yoyo: true,
+      repeat: 10,
+      ease: 'Sine.easeInOut'
+    });
+
+    
+    this.time.delayedCall(1850, () => {
+      if (footsteps) footsteps.stop();
+
+      if (voiceLine) voiceLine.play();
+
+      this.tweens.add({
+        targets: guy,
+        angle: 8,
+        duration: 160
+      });
+
+      this.tweens.add({
+        targets: speechText,
+        alpha: 1,
+        duration: 240
+      });
+    });
+
+   
+    this.time.delayedCall(3200, () => {
+      punch.play();
+
+      this.tweens.add({
+        targets: speechText,
+        alpha: 0,
+        duration: 150
+      });
+
+      shockwave.setPosition(350, HEIGHT - 155).setAlpha(1).setScale(1);
+
+      this.tweens.add({
+        targets: shockwave,
+        x: 720,
+        scale: 8,
+        alpha: 0,
+        duration: 240,
+        ease: 'Cubic.easeOut'
+      });
+
+      this.tweens.add({
+        targets: flash,
+        alpha: 0.85,
+        duration: 90,
+        yoyo: true,
+        onYoyo: () => {
+          logo.setAlpha(1);
+          this.tweens.add({
+            targets: logo,
+            scale: 0.65,
+            duration: 260,
+            ease: 'Back.easeOut'
+          });
+        }
+      });
+    });
+
+    this.time.delayedCall(4400, () => {
+      this.cameras.main.fadeOut(700, 0, 0, 0);
+      this.time.delayedCall(750, () => {
+        this.scene.start('WorldTeaseScene');
+      });
+    });
+  }
+}
+
+    class WorldTeaseScene extends Phaser.Scene {
+      constructor() {
+        super('WorldTeaseScene');
+      }
+
+      create() {
+        this.cameras.main.fadeIn(500, 0, 0, 0);
+        const bg = this.add.image(WIDTH / 2, HEIGHT / 2, 'cityBg');
+        bg.setDisplaySize(WIDTH, HEIGHT);
+
+        this.add.circle(120, 95, 48, 0xffcc33, 0.9);
+
+        const guy = this.add.image(170, HEIGHT - 122, 'guy').setScale(0.24);
+
+        this.tweens.add({
+          targets: guy,
+          y: HEIGHT - 130,
+          duration: 750,
+          yoyo: true,
+          repeat: -1,
+          ease: 'Sine.easeInOut'
+        });
+
+        this.add.text(520, 120, 'A city built on bruises,\nnoise, and reputation.\nOnly the toughest survive.', {
+          fontFamily: 'Arial',
+          fontSize: '30px',
+          color: '#ffffff',
+          align: 'left',
+          wordWrap: { width: 340 }
+        });
+
+        this.time.delayedCall(3200, () => {
+          this.cameras.main.fadeOut(700, 0, 0, 0);
+          this.time.delayedCall(750, () => {
+            this.scene.start('MainMenuScene');
+          });
+        });
+      }
+    }
+
+    class MainMenuScene extends Phaser.Scene {
+      constructor() {
+        super('MainMenuScene');
+      }
+
+      create() {
+  this.cameras.main.fadeIn(500, 0, 0, 0);
+
+  this.add.rectangle(WIDTH / 2, HEIGHT / 2, WIDTH, HEIGHT, 0x101010);
+
+  const title = this.add.image(WIDTH / 2, 165, 'title').setScale(0.5);
+  const logo = this.add.image(720, 330, 'logo').setScale(0.38);
+  const guy = this.add.image(110, 360, 'guy').setScale(0.2);
+
+  this.tweens.add({
+    targets: title,
+    y: 175,
+    duration: 1200,
+    yoyo: true,
+    repeat: -1,
+    ease: 'Sine.easeInOut'
+  });
+
+  this.tweens.add({
+    targets: logo,
+    angle: 3,
+    duration: 500,
+    yoyo: true,
+    repeat: -1,
+    ease: 'Sine.easeInOut'
+  });
+
+  this.tweens.add({
+    targets: guy,
+    y: 368,
+    duration: 800,
+    yoyo: true,
+    repeat: -1,
+    ease: 'Sine.easeInOut'
+  });
+
+  this.add.text(170, 255, 'Play', {
+    fontFamily: 'Arial',
+    fontSize: '34px',
+    color: '#ffffff'
+  });
+
+  this.add.text(170, 310, 'Options', {
+    fontFamily: 'Arial',
+    fontSize: '34px',
+    color: '#ffffff'
+  });
+
+  this.add.text(170, 365, 'Credits', {
+    fontFamily: 'Arial',
+    fontSize: '34px',
+    color: '#ffffff'
+  });
+}
+    }
+
+    const config = {
+      type: Phaser.AUTO,
+      width: WIDTH,
+      height: HEIGHT,
+      parent: 'game-container',
+      scene: [StudioIntroScene, WorldTeaseScene, MainMenuScene]
+    };
+
+    new Phaser.Game(config);
+  </script>
+</body>
+</html>
