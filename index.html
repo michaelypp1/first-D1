@@ -47,6 +47,7 @@
         this.load.image('logo', 'assets/Logo.png');
         this.load.image('title', 'assets/title.png');
         this.load.image('cityBg', 'assets/Background.png');
+        this.load.image('scene2Bg', 'assets/Bg2.png');
 
         this.load.image('startBtn', 'assets/start.png');
         this.load.image('creditBtn', 'assets/credit.png');
@@ -246,7 +247,7 @@
           bg1Music.play();
         }
 
-        const bg = this.add.image(WIDTH / 2, HEIGHT / 2, 'cityBg');
+        const bg = this.add.image(WIDTH / 2, HEIGHT / 2, 'scene2Bg');
         bg.setDisplaySize(WIDTH, HEIGHT);
 
         this.add.circle(120, 95, 48, 0xffcc33, 0.9);
